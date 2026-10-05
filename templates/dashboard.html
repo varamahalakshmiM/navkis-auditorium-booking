@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | Auditorium Booking{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="welcome-row">
+    <div>
+        <span class="eyebrow">OVERVIEW</span>
+        <h1>Welcome back, {{ name }}</h1>
+        <p>Manage your auditorium bookings from one place.</p>
+    </div>
+    <a href="{{ url_for('book') }}" class="btn btn-primary">＋ New Booking</a>
+</div>
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-icon blue">▤</div>
+        <div>
+            <span>Total Bookings</span>
+            <strong>{{ total }}</strong>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon orange">◷</div>
+        <div>
+            <span>Pending</span>
+            <strong>{{ pending }}</strong>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon green">✓</div>
+        <div>
+            <span>Approved</span>
+            <strong>{{ approved }}</strong>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon purple">▦</div>
+        <div>
+            <span>Hours</span>
+            <strong>9 AM – 6 PM</strong>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <section class="panel">
+        <div class="panel-header">
+            <div>
+                <h2>Upcoming Bookings</h2>
+                <p>Your next auditorium reservations</p>
+            </div>
+            <a href="{{ url_for('my_bookings') }}" class="text-link">View all →</a>
+        </div>
+
+        {% if upcoming %}
+        <div class="booking-list">
+            {% for b in upcoming %}
+            <div class="booking-row">
+                <div class="date-box">
+                    <strong>{{ b.booking_date[8:10] }}</strong>
+                    <span>{{ b.booking_date[5:7] }}/{{ b.booking_date[0:4] }}</span>
+                </div>
+                <div class="booking-main">
+                    <strong>{{ b.event_name }}</strong>
+                    <span>{{ b.start_time }} – {{ b.end_time }}</span>
+                </div>
+                <span class="status status-{{ b.status }}">{{ b.status|capitalize }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">▦</div>
+            <h3>No upcoming bookings</h3>
+            <p>Create a booking request to reserve the auditorium.</p>
+            <a href="{{ url_for('book') }}" class="btn btn-secondary">Book Auditorium</a>
+        </div>
+        {% endif %}
+    </section>
+
+    <section class="panel quick-panel">
+        <div class="panel-header">
+            <div>
+                <h2>Quick Actions</h2>
+                <p>Common tasks</p>
+            </div>
+        </div>
+
+        <a class="quick-action" href="{{ url_for('calendar') }}">
+            <span class="quick-icon">▦</span>
+            <div><strong>View Calendar</strong><small>See booked dates and schedules</small></div>
+            <span>→</span>
+        </a>
+
+        <a class="quick-action" href="{{ url_for('book') }}">
+            <span class="quick-icon">＋</span>
+            <div><strong>Book Auditorium</strong><small>Choose date and custom time</small></div>
+            <span>→</span>
+        </a>
+
+        <a class="quick-action" href="{{ url_for('my_bookings') }}">
+            <span class="quick-icon">▤</span>
+            <div><strong>My Bookings</strong><small>Check request status</small></div>
+            <span>→</span>
+        </a>
+
+        {% if role == "admin" %}
+        <a class="quick-action" href="{{ url_for('admin_bookings') }}">
+            <span class="quick-icon">✓</span>
+            <div><strong>Booking Requests</strong><small>{{ admin_pending }} pending requests</small></div>
+            <span>→</span>
+        </a>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

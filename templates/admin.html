@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel | Auditorium Booking{% endblock %}
+{% block page_title %}Admin Panel{% endblock %}
+
+{% block content %}
+<div class="welcome-row">
+    <div>
+        <span class="eyebrow">ADMINISTRATION</span>
+        <h1>Admin Control Center</h1>
+        <p>Manage users, booking requests and the auditorium schedule.</p>
+    </div>
+</div>
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-icon blue">♙</div>
+        <div><span>Total Users</span><strong>{{ users }}</strong></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon orange">◷</div>
+        <div><span>Pending Requests</span><strong>{{ pending }}</strong></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green">✓</div>
+        <div><span>Approved Bookings</span><strong>{{ approved }}</strong></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon purple">▦</div>
+        <div><span>Auditorium Hours</span><strong>9–18</strong></div>
+    </div>
+</div>
+
+
+<div class="admin-cards">
+    <a href="{{ url_for('manage_users') }}" class="admin-card">
+        <div class="admin-card-icon">♙</div>
+        <div>
+            <h2>Manage Users</h2>
+            <p>Add users, change active status or delete accounts.</p>
+            <strong>Open User Management →</strong>
+        </div>
+    </a>
+
+    <a href="{{ url_for('admin_bookings') }}" class="admin-card">
+        <div class="admin-card-icon">✓</div>
+        <div>
+            <h2>Booking Requests</h2>
+            <p>Review pending requests and approve or reject them.</p>
+            <strong>Open Booking Requests →</strong>
+        </div>
+    </a>
+
+    <a href="{{ url_for('calendar') }}" class="admin-card">
+        <div class="admin-card-icon">▦</div>
+        <div>
+            <h2>Calendar</h2>
+            <p>View the auditorium schedule by month and day.</p>
+            <strong>Open Calendar →</strong>
+        </div>
+    </a>
+</div>
+{% endblock %}

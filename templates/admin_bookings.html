@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Booking Requests | Auditorium Booking{% endblock %}
+{% block page_title %}Booking Requests{% endblock %}
+
+{% block content %}
+<div class="section-heading">
+    <div>
+        <span class="eyebrow">ADMINISTRATION</span>
+        <h1>Booking Requests</h1>
+        <p>Review and manage all auditorium booking requests.</p>
+    </div>
+
+</div>
+
+<section class="panel table-panel">
+    {% if bookings %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Event</th>
+                    <th>Purpose</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for b in bookings %}
+                <tr>
+                    <td>
+                        <strong>{{ b.user_name }}</strong>
+                        <small>{{ b.username }}</small>
+                    </td>
+                    <td>{{ b.booking_date }}</td>
+                    <td>{{ b.start_time }} – {{ b.end_time }}</td>
+                    <td><strong>{{ b.event_name }}</strong></td>
+                    <td>{{ b.purpose or '—' }}</td>
+                    <td><span class="status status-{{ b.status }}">{{ b.status|capitalize }}</span></td>
+                    <td>
+                        <div class="action-group">
+                            {% if b.status == 'pending' %}
+                            <form method="POST" action="{{ url_for('approve_booking', booking_id=b.id) }}">
+                                <button class="btn btn-small btn-success" type="submit">Approve</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('reject_booking', booking_id=b.id) }}">
+                                <button class="btn btn-small btn-warning" type="submit">Reject</button>
+                            </form>
+                            {% endif %}
+                            <form method="POST" action="{{ url_for('delete_booking', booking_id=b.id) }}"
+                                  onsubmit="return confirm('Delete this booking?')">
+                                <button class="btn btn-small btn-danger" type="submit">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state large">
+        <div class="empty-icon">✓</div>
+        <h2>No booking requests</h2>
+        <p>There are currently no auditorium bookings.</p>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

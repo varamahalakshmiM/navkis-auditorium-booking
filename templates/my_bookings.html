@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}My Bookings | Auditorium Booking{% endblock %}
+{% block page_title %}My Bookings{% endblock %}
+
+{% block content %}
+<div class="section-heading">
+    <div>
+        <span class="eyebrow">RESERVATIONS</span>
+        <h1>My Bookings</h1>
+        <p>Track your auditorium booking requests and approval status.</p>
+    </div>
+    <a href="{{ url_for('book') }}" class="btn btn-primary">＋ New Booking</a>
+</div>
+
+<section class="panel table-panel">
+    {% if bookings %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Event</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Participants</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for b in bookings %}
+                <tr>
+                    <td>
+                        <strong>{{ b.event_name }}</strong>
+                        <small>{{ b.purpose or 'No purpose provided' }}</small>
+                    </td>
+                    <td>{{ b.booking_date }}</td>
+                    <td>{{ b.start_time }} – {{ b.end_time }}</td>
+                    <td>{{ b.participants or '—' }}</td>
+                    <td><span class="status status-{{ b.status }}">{{ b.status|capitalize }}</span></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state large">
+        <div class="empty-icon">▤</div>
+        <h2>No bookings yet</h2>
+        <p>You have not submitted an auditorium booking request.</p>
+        <a href="{{ url_for('book') }}" class="btn btn-primary">Book Auditorium</a>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

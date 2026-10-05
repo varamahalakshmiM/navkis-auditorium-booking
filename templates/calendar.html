@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block title %}Calendar | Auditorium Booking{% endblock %}
+{% block page_title %}Calendar{% endblock %}
+
+{% block content %}
+<div class="section-heading">
+    <div>
+        <span class="eyebrow">SCHEDULE</span>
+        <h1>Auditorium Calendar</h1>
+        <p>Click a date to see the complete schedule for that day.</p>
+    </div>
+    <a href="{{ url_for('book') }}" class="btn btn-primary">＋ New Booking</a>
+</div>
+
+<div class="calendar-layout">
+    <section class="panel calendar-panel">
+        <div class="calendar-toolbar">
+            <div class="month-controls">
+                <button class="icon-btn" onclick="changeMonth(-1)">‹</button>
+                <button class="today-btn" onclick="goToday()">Today</button>
+                <button class="icon-btn" onclick="changeMonth(1)">›</button>
+                <h2 id="monthTitle"></h2>
+            </div>
+        </div>
+
+        <div class="calendar-weekdays">
+            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div>
+            <div>Thu</div><div>Fri</div><div>Sat</div>
+        </div>
+
+        <div id="calendarGrid" class="calendar-grid"></div>
+
+        <div class="calendar-legend">
+            <span><i class="dot approved-dot"></i> Approved</span>
+            <span><i class="dot pending-dot"></i> Pending</span>
+            <span><i class="dot free-dot"></i> Available</span>
+        </div>
+    </section>
+
+    <aside class="panel day-panel">
+        <div class="day-panel-head">
+            <span class="eyebrow">SELECTED DATE</span>
+            <h2 id="selectedDateTitle">Select a date</h2>
+        </div>
+        <div id="daySchedule" class="day-schedule">
+            <div class="empty-state small">
+                <div class="empty-icon">▦</div>
+                <p>Choose a calendar date.</p>
+            </div>
+        </div>
+    </aside>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let calendarDate = new Date();
+let selectedDateKey = "";
+let calendarBookings = [];
+
+async function loadCalendar() {
+    const response = await fetch("{{ url_for('calendar_api') }}");
+    calendarBookings = await response.json();
+    renderCalendar();
+}
+
+function keyFor(date) {
+    return date.getFullYear() + "-" +
+        String(date.getMonth() + 1).padStart(2, "0") + "-" +
+        String(date.getDate()).padStart(2, "0");
+}
+
+function renderCalendar() {
+    const year = calendarDate.getFullYear();
+    const month = calendarDate.getMonth();
+
+    document.getElementById("monthTitle").textContent =
+        calendarDate.toLocaleString("en-US", { month: "long", year: "numeric" });
+
+    const grid = document.getElementById("calendarGrid");
+    grid.innerHTML = "";
+
+    const first = new Date(year, month, 1);
+    const last = new Date(year, month + 1, 0);
+
+    for (let i = 0; i < first.getDay(); i++) {
+        const blank = document.createElement("div");
+        blank.className = "calendar-cell blank";
+        grid.appendChild(blank);
+    }
+
+    for (let day = 1; day <= last.getDate(); day++) {
+        const d = new Date(year, month, day);
+        const key = keyFor(d);
+        const bookings = calendarBookings.filter(x => x.date === key);
+
+        const cell = document.createElement("button");
+        cell.className = "calendar-cell";
+        if (key === keyFor(new Date())) cell.classList.add("today");
+        if (key === selectedDateKey) cell.classList.add("selected");
+
+        let html = `<span class="day-number">${day}</span>`;
+
+        if (bookings.length) {
+            html += `<div class="day-events">`;
+            bookings.slice(0, 2).forEach(b => {
+                html += `<span class="mini-event ${b.status}">
+                    <i></i>${escapeHtml(b.event)}
+                </span>`;
+            });
+            if (bookings.length > 2) {
+                html += `<span class="more-events">+${bookings.length - 2} more</span>`;
+            }
+            html += `</div>`;
+        }
+
+        cell.innerHTML = html;
+        cell.onclick = () => selectDate(key);
+        grid.appendChild(cell);
+    }
+
+    if (selectedDateKey) showSchedule(selectedDateKey);
+}
+
+function selectDate(key) {
+    selectedDateKey = key;
+    renderCalendar();
+}
+
+function showSchedule(key) {
+    const parts = key.split("-");
+    const d = new Date(parts[0], Number(parts[1]) - 1, parts[2]);
+
+    document.getElementById("selectedDateTitle").textContent =
+        d.toLocaleString("en-US", {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+            year: "numeric"
+        });
+
+    const list = document.getElementById("daySchedule");
+    const bookings = calendarBookings.filter(x => x.date === key);
+
+    if (!bookings.length) {
+        list.innerHTML = `
+            <div class="free-card">
+                <div class="free-check">✓</div>
+                <strong>Auditorium is available</strong>
+                <span>No bookings on this date.</span>
+                <a href="{{ url_for('book') }}?date=${key}" class="btn btn-primary">Book this date</a>
+            </div>`;
+        return;
+    }
+
+    list.innerHTML = bookings.map(b => `
+        <div class="schedule-card">
+            <div class="schedule-time">${formatTime(b.start)} – ${formatTime(b.end)}</div>
+            <div class="schedule-title">${escapeHtml(b.event)}</div>
+            <div class="schedule-meta">${escapeHtml(b.user)} · ${escapeHtml(b.status)}</div>
+            ${b.purpose ? `<div class="schedule-purpose">${escapeHtml(b.purpose)}</div>` : ""}
+        </div>
+    `).join("");
+}
+
+function formatTime(t) {
+    const [h, m] = t.split(":").map(Number);
+    const suffix = h >= 12 ? "PM" : "AM";
+    const hour = h % 12 || 12;
+    return `${hour}:${String(m).padStart(2, "0")} ${suffix}`;
+}
+
+function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, c => ({
+        "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;"
+    }[c]));
+}
+
+function changeMonth(amount) {
+    calendarDate.setMonth(calendarDate.getMonth() + amount);
+    selectedDateKey = "";
+    renderCalendar();
+}
+
+function goToday() {
+    calendarDate = new Date();
+    selectedDateKey = keyFor(new Date());
+    renderCalendar();
+}
+
+loadCalendar();
+</script>
+{% endblock %}

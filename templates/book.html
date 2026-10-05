@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}New Booking | Auditorium Booking{% endblock %}
+{% block page_title %}New Booking{% endblock %}
+
+{% block content %}
+<div class="section-heading">
+    <div>
+        <span class="eyebrow">RESERVATION</span>
+        <h1>Book the Auditorium</h1>
+        <p>Choose any available date and custom time between 9:00 AM and 6:00 PM.</p>
+    </div>
+</div>
+
+{% if error %}
+<div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+{% if success %}
+<div class="alert alert-success">{{ success }}</div>
+{% endif %}
+
+<div class="booking-layout">
+    <section class="panel form-panel">
+        <form method="POST" id="bookingForm">
+
+            <div class="form-section">
+                <div class="form-section-title">
+                    <span class="step-number">1</span>
+                    <div><strong>Date & Time</strong><small>Select your required schedule</small></div>
+                </div>
+
+                <div class="form-grid three">
+                    <div class="field">
+                        <label>Booking Date</label>
+                        <input type="date" name="booking_date" id="booking_date"
+                               min="{{ today }}" value="{{ request.form.get('booking_date','') }}" required>
+                    </div>
+
+                    <div class="field">
+                        <label>Start Time</label>
+                        <input type="time" name="start_time" id="start_time"
+                               min="09:00" max="18:00" value="{{ request.form.get('start_time','') }}" required>
+                    </div>
+
+                    <div class="field">
+                        <label>End Time</label>
+                        <input type="time" name="end_time" id="end_time"
+                               min="09:00" max="18:00" value="{{ request.form.get('end_time','') }}" required>
+                    </div>
+                </div>
+
+                <button type="button" id="checkBtn" class="btn btn-secondary">
+                    Check Availability
+                </button>
+
+                <div id="availability" class="availability-box"></div>
+            </div>
+
+            <div class="form-divider"></div>
+
+            <div class="form-section">
+                <div class="form-section-title">
+                    <span class="step-number">2</span>
+                    <div><strong>Event Details</strong><small>Tell us about your event</small></div>
+                </div>
+
+                <div class="form-grid two">
+                    <div class="field">
+                        <label>Event Name</label>
+                        <input type="text" name="event_name"
+                               placeholder="Example: College Seminar"
+                               value="{{ request.form.get('event_name','') }}" required>
+                    </div>
+
+                    <div class="field">
+                        <label>Number of Participants</label>
+                        <input type="number" name="participants" min="1"
+                               placeholder="Example: 100"
+                               value="{{ request.form.get('participants','') }}">
+                    </div>
+
+                    <div class="field full">
+                        <label>Purpose of Booking</label>
+                        <textarea name="purpose" rows="4"
+                                  placeholder="Explain the purpose of your auditorium booking">{{ request.form.get('purpose','') }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-footer">
+                <span>Booking will be submitted as <strong>Pending</strong>.</span>
+                <button type="submit" id="submitBtn" class="btn btn-primary" disabled>
+                    Submit Booking Request →
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <aside class="panel booking-info">
+        <div class="info-icon">▦</div>
+        <h2>Auditorium</h2>
+        <p>College Main Auditorium</p>
+
+        <div class="info-item">
+            <span>Opening Hours</span>
+            <strong>9:00 AM – 6:00 PM</strong>
+        </div>
+        <div class="info-item">
+            <span>Booking Status</span>
+            <strong>Admin Approval Required</strong>
+        </div>
+
+        <div class="info-note">
+            <strong>Before submitting</strong>
+            <p>Use Check Availability first. Pending and approved bookings block the selected time.</p>
+        </div>
+    </aside>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const dateInput = document.getElementById("booking_date");
+const startInput = document.getElementById("start_time");
+const endInput = document.getElementById("end_time");
+const checkBtn = document.getElementById("checkBtn");
+const submitBtn = document.getElementById("submitBtn");
+const availability = document.getElementById("availability");
+
+function resetAvailability() {
+    submitBtn.disabled = true;
+    availability.innerHTML = "";
+}
+
+[dateInput, startInput, endInput].forEach(el => {
+    el.addEventListener("change", resetAvailability);
+});
+
+checkBtn.addEventListener("click", async () => {
+    if (!dateInput.value || !startInput.value || !endInput.value) {
+        availability.innerHTML =
+            '<div class="availability-error">Select date, start time and end time first.</div>';
+        submitBtn.disabled = true;
+        return;
+    }
+
+    checkBtn.disabled = true;
+    checkBtn.textContent = "Checking...";
+
+    try {
+        const response = await fetch("{{ url_for('check_availability') }}", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                booking_date: dateInput.value,
+                start_time: startInput.value,
+                end_time: endInput.value
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.available) {
+            availability.innerHTML =
+                `<div class="availability-success"><span>✓</span>${data.message}</div>`;
+            submitBtn.disabled = false;
+        } else {
+            availability.innerHTML =
+                `<div class="availability-error"><span>!</span>${data.message}</div>`;
+            submitBtn.disabled = true;
+        }
+    } catch (error) {
+        availability.innerHTML =
+            '<div class="availability-error">Could not check availability. Try again.</div>';
+        submitBtn.disabled = true;
+    } finally {
+        checkBtn.disabled = false;
+        checkBtn.textContent = "Check Availability";
+    }
+});
+</script>
+{% endblock %}

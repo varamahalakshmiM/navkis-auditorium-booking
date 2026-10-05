@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Navkis Auditorium Booking{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="app-body">
+
+<div class="app-shell">
+
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            <img class="college-logo" src="{{ url_for('static', filename='college_logo.png') }}" alt="Navkis College of Engineering logo">
+            <div>
+                <strong>Navkis Auditorium</strong>
+                <span>Booking System</span>
+            </div>
+        </div>
+
+        <div class="sidebar-label">MAIN MENU</div>
+
+        <nav class="nav-list">
+            <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}"
+               href="{{ url_for('dashboard') }}">
+                <span class="nav-icon">⌂</span>
+                <span>Dashboard</span>
+            </a>
+
+            <a class="nav-link {% if request.endpoint == 'calendar' %}active{% endif %}"
+               href="{{ url_for('calendar') }}">
+                <span class="nav-icon">▦</span>
+                <span>Calendar</span>
+            </a>
+
+            <a class="nav-link {% if request.endpoint == 'book' %}active{% endif %}"
+               href="{{ url_for('book') }}">
+                <span class="nav-icon">＋</span>
+                <span>New Booking</span>
+            </a>
+
+            <a class="nav-link {% if request.endpoint == 'my_bookings' %}active{% endif %}"
+               href="{{ url_for('my_bookings') }}">
+                <span class="nav-icon">▤</span>
+                <span>My Bookings</span>
+            </a>
+
+            {% if role == "admin" %}
+            <div class="sidebar-label admin-label">ADMINISTRATION</div>
+
+            <a class="nav-link {% if request.endpoint == 'admin' %}active{% endif %}"
+               href="{{ url_for('admin') }}">
+                <span class="nav-icon">◈</span>
+                <span>Admin Panel</span>
+            </a>
+
+            <a class="nav-link {% if request.endpoint == 'manage_users' %}active{% endif %}"
+               href="{{ url_for('manage_users') }}">
+                <span class="nav-icon">♙</span>
+                <span>Manage Users</span>
+            </a>
+
+            <a class="nav-link {% if request.endpoint == 'admin_bookings' %}active{% endif %}"
+               href="{{ url_for('admin_bookings') }}">
+                <span class="nav-icon">✓</span>
+                <span>Booking Requests</span>
+            </a>
+            {% endif %}
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="profile-mini">
+                <div class="avatar">{{ name[:1]|upper }}</div>
+                <div class="profile-text">
+                    <strong>{{ name }}</strong>
+                    <span>{{ role|capitalize }}</span>
+                </div>
+            </div>
+            <a class="logout-link" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </aside>
+
+    <main class="main-area">
+        <header class="topbar">
+            <button class="mobile-menu" onclick="toggleSidebar()">☰</button>
+
+            <div>
+                <div class="top-title">{% block page_title %}Navkis Auditorium Booking{% endblock %}</div>
+                <div class="top-subtitle">Navkis College of Engineering, Hassan</div>
+            </div>
+
+            <div class="top-actions">
+                <a href="{{ url_for('calendar') }}" class="top-calendar">▦ Calendar</a>
+                <div class="top-avatar">{{ name[:1]|upper }}</div>
+            </div>
+        </header>
+
+        <section class="page-content">
+            {% block content %}{% endblock %}
+        </section>
+    </main>
+
+</div>
+
+<div class="site-watermark" aria-hidden="true">FALCON TECH</div>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
